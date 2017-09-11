@@ -133,10 +133,12 @@ struct Pair{
         self.x = x;
         self.y = y;
     }
-    public var description: String { let s = String(x)
+    public var description: String { 
+        let s = String(x)
         let s1 = String(y)
         let s2 = s + " - " + s1
-        return s2 }
+        return s2 
+    }
 }
 class Field{
     var results = [String: Pair]()
