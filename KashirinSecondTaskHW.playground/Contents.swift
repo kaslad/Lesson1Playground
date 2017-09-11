@@ -2,8 +2,6 @@
 
 import UIKit
 
-var str = "Hello, playground"
-
 // 1 task method trim()
 func trim(_ word: String, with: String) -> String{
     var string = String()
@@ -42,20 +40,21 @@ print(trim("irSirtirinig", with: "ir"))
 class Unit{
     var health: Int = 0
     var damage: Int = 0
-    var def: Int = 0
+    var defence: Int = 0
     var agility: Int = 0
     var name: String = ""
-    /* init(){
+    let attackConstant = 100
+    init(){
         health = 0
         damage = 0
-        def = 0
+        defence = 0
         agility = 0
         name = ""
     }
- */
+
     
     func attack(to:Unit){
-        to.health -= self.damage * self.agility * (100 - to.def) / 10000
+        to.health -= self.damage * self.agility * (attackConstant - to.defence) / (attackConstant * attackConstant)
     }
     func isAlive() -> Bool{
         if health > 0 {
@@ -66,14 +65,15 @@ class Unit{
     
 }
 class Mag: Unit{
-    let CAPACITY_HEAL = 40
-    var am_heal = 0
+    let capacityOfHeal = 40
+    var amountOfHealed = 0
+    var amounfOfHeal = 3
     init(health: Int, damage: Int, def: Int,
          agility:Int, name: String){
         super.init()
         self.health = health
         self.damage = damage
-        self.def = def
+        self.defence = def
         self.agility = agility
         self.name = name
 
@@ -83,10 +83,10 @@ class Mag: Unit{
     }
     func heal(){
         
-        if(am_heal < CAPACITY_HEAL){
-            self.health += 3
+        if(amountOfHealed < capacityOfHeal){
+            self.health += amounfOfHeal
         }
-        am_heal += 3
+        amountOfHealed += amounfOfHeal
     }
     override func attack(to: Unit) {
         
@@ -101,7 +101,7 @@ class Assasin: Unit{
         super.init()
         self.health = health
         self.damage = damage
-        self.def = def
+        self.defence = def
         self.agility = agility
         self.name = name
     }
@@ -116,7 +116,7 @@ class Knight: Unit{
         super.init()
         self.health = health
         self.damage = damage
-        self.def = def
+        self.defence = def
         self.agility = agility
         self.name = name
     }
@@ -125,6 +125,8 @@ class Knight: Unit{
     }
 
 }
+// Class Pair собственный для хранения пар значений
+// в Java нет такого, в С++ есть
 struct Pair{
     var x,y : Int
     init(x:Int,y:Int){
@@ -137,77 +139,83 @@ struct Pair{
         return s2 }
 }
 class Field{
-    var results = [String: Pair ]()
+    var results = [String: Pair]()
+    let amountOfPlayersToShow = 3
     init(){
     }
-    func beginBattle(with: Array<Unit>){
+    func beginBattle(with units: Array<Unit>){
         
-        var set = Array<Int>()
-        for i in 0 ..< with.count{
-            let key = with[i].name
+        var numbersOfAlivePlayers = Array<Int>()
+        for i in 0 ..< units.count{
+            let key = units[i].name
             if results[key] == nil{
                 results[key] = Pair(x: 0,y: 0)
             }
-            set.append(i)
+            numbersOfAlivePlayers.append(i)
         }
-        var curPlayer : Int = 0
+        var currentPlayer : Int = 0
         // все возможные удары
-        while(set.count > 1){
-            print(with[curPlayer].name + ", your move")
-            for i in set{
-                if i != curPlayer{
-                    print(String(i) + " - " + with[i].name)
+        while(numbersOfAlivePlayers.count > 1){
+            print(units[currentPlayer].name + ", your move")
+            for i in numbersOfAlivePlayers{
+                if i != currentPlayer{
+                    print(String(i) + " - " + units[i].name)
                 }
                 
             }
             var randomNum: Int = -1
             repeat{
-                let rand: Int = Int(arc4random_uniform(UInt32(set.count)))
+                let rand: Int = Int(arc4random_uniform(UInt32(numbersOfAlivePlayers.count)))
                 randomNum = rand
-            }while set[randomNum] == curPlayer
-            print("Chose " + String(set[randomNum]))
+            }while numbersOfAlivePlayers[randomNum] == currentPlayer
+            print("Chose " + String(numbersOfAlivePlayers[randomNum]))
             
-            with[curPlayer].attack(to: with[set[randomNum]])
-            print(with[set[randomNum]].name + " health " + String(with[set[randomNum]].health))
-            if !with[set[randomNum]].isAlive(){
-                set.remove(at: randomNum)
+            units[currentPlayer].attack(to: units[numbersOfAlivePlayers[randomNum]])
+            print(units[numbersOfAlivePlayers[randomNum]].name + " health " + String(units[numbersOfAlivePlayers[randomNum]].health))
+            if !units[numbersOfAlivePlayers[randomNum]].isAlive(){
+                numbersOfAlivePlayers.remove(at: randomNum)
             }
             
-            let prevPlayer = curPlayer
-            for i in set{
-                if i > curPlayer{
-                    curPlayer = i
+            let prevPlayer = currentPlayer
+            for i in numbersOfAlivePlayers{
+                if i > currentPlayer{
+                    currentPlayer = i
                     break
                 }
             }
-            if prevPlayer == curPlayer{
-                curPlayer = set[0]
+            if prevPlayer == currentPlayer{
+                currentPlayer = numbersOfAlivePlayers[0]
             }
             
             
         }
         
-        print(with[set[0]].name + " won")
-        results[with[set[0]].name]?.x += 1;
-        results[with[set[0]].name]?.y -= 1;
+        print(units[numbersOfAlivePlayers[0]].name + " won")
+        results[units[numbersOfAlivePlayers[0]].name]?.x += 1;
+        results[units[numbersOfAlivePlayers[0]].name]?.y -= 1;
         print("Top results")
         let itemResult = results.sorted { (first: (key: String, value: Pair), second: (key: String, value: Pair)) -> Bool in
             return first.value.x - first.value.y >
                 second.value.x - second.value.y
         }
-        var cou = 0
+        var countOfPlayers = 0
         for i in itemResult{
-            if cou >= 3{
+            if countOfPlayers >= amountOfPlayersToShow{
                 break
             }
             print(i.key + " " + i.value.description)
-            cou += 1
+            countOfPlayers += 1
         }
         
-        for i in with{
+        for i in units{
             
             let key = i.name
-            results[key] = Pair(x : (results[key]?.x)! ,y: (results[key]?.y)! + 1)
+            if let xValue = results[key]?.x,
+                let yValue = results[key]?.y {
+                
+                results[key] = Pair(x: xValue, y:yValue + 1)
+             }
+            
             
         }
         
